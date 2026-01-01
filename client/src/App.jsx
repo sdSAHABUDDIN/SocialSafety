@@ -1,4 +1,4 @@
-import React, { use } from 'react'
+import React from 'react'
 import { Routes,Route } from 'react-router-dom'
 import Login from './pages/Login'
 import Feed from './pages/Feed'
