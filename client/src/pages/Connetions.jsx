@@ -27,11 +27,35 @@ const Connetions = () => {
     { label: "Connections", value: connections, icon: UserPlus },
   ];
 
-  const [currentTab, setCurrentTab] = React.useState("Followers");
+  const dummyHealthMap = {
+    Normal: {
+      color: "bg-green-100 text-green-700",
+      label: "Normal",
+    },
+    Warning: {
+      color: "bg-yellow-100 text-yellow-700",
+      label: "Warning",
+    },
+    Emergency: {
+      color: "bg-red-100 text-red-700",
+      label: "Emergency",
+    },
+  };
+  // helper to simulate health
+  const getRandomHealth = () => {
+    const states = ["Normal", "Warning", "Emergency"];
+    return {
+      status: states[Math.floor(Math.random() * states.length)],
+      heartRate: Math.floor(60 + Math.random() * 60),
+      temperature: (36 + Math.random() * 2).toFixed(1),
+    };
+  };
 
-  const activeTab = dataArray.find(
-    (item) => item.label === currentTab
-  );
+  const [currentTab, setCurrentTab] = React.useState("Connections");
+  const isConnectionTab = currentTab === "Connections";
+  const health = isConnectionTab ? getRandomHealth() : null;
+
+  const activeTab = dataArray.find((item) => item.label === currentTab);
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto p-6">
@@ -79,47 +103,80 @@ const Connetions = () => {
         </div>
         {/* Connections List */}
         <div className="flex flex-wrap gap-6 mt-6">
-          {activeTab?.value?.map((user) => (
-            <div
-              key={user._id}
-              className="w-full max-w-88 flex gap-5 p-6 bg-white shadow rounded-md"
+          {activeTab?.value?.map((user) => {
+  const isConnectionTab = currentTab === "Connections";
+  const health = isConnectionTab ? getRandomHealth() : null;
+  const badge = health ? dummyHealthMap[health.status] : null;
+
+  return (
+    <div
+      key={user._id}
+      className="w-full max-w-md flex gap-5 p-6 bg-white shadow rounded-md"
+    >
+      <img
+        src={user.profile_picture}
+        alt=""
+        className="rounded-full size-12 shadow-md"
+      />
+
+      <div className="flex-1">
+        {/* Name */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-slate-700">{user.full_name}</p>
+            <p className="text-slate-500 text-sm">@{user.username}</p>
+          </div>
+
+          {/* 🔥 HEALTH BADGE – ONLY FOR CONNECTIONS */}
+          {isConnectionTab && (
+            <span
+              className={`px-3 py-1 text-xs rounded-full font-semibold ${badge.color}`}
             >
-              <img src={user.profile_picture} alt="" className='rounded-full size-12 mx-auto shadow-md'/>
-              <div className="flex-1">
-                <p className='font-medium text-slate-700'>{user.full_name}</p>
-                <p className='text-slate-500'>@{user.username}</p>
-                <p className='text-sm text-gray-600'>{user.bio.slice(0,30)}...</p>
-                <div className="flex max-sm:flex-col gap-2 mt-4">
-                  {
-                    <button onClick={()=>navigate(`/profile/${user._id}`)} className='w-full p-2 text-sm rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active-scalte-95 transition text-white cursor-pointer'>
-                      View Profile
-                    </button>
-                  }
-                  {
-                    currentTab==='Following' && (
-                      <button className='w-full p-2 text-sm rounded bg-gray-100 hover:bg-gray-200 active-scalte-95 transition text-gray-800 cursor-pointer'>
-                        Unfollow
-                      </button>
-                    )
-                  }
-                  {
-                    currentTab==='Pending' && (
-                      <button className='w-full p-2 text-sm rounded bg-gray-100 hover:bg-gray-200 active-scalte-95 transition text-gray-800 cursor-pointer'>
-                        Accept
-                      </button>
-                    )
-                  }
-                  {
-                    currentTab==='Connections' && (
-                      <button onClick={()=>navigate(`/messages/$(user._id)`)}className='w-full p-2 text-sm rounded bg-gray-100 hover:bg-gray-200 active-scalte-95 transition text-gray-800 cursor-pointer'>
-                        Remove Connection
-                      </button>
-                    )
-                  }
-                </div>
-              </div>
-            </div>
-          ))}
+              {badge.label}
+            </span>
+          )}
+        </div>
+
+        <p className="text-sm text-gray-600 mt-1">
+          {user.bio.slice(0, 40)}...
+        </p>
+
+        {/* 🔥 HEALTH SNAPSHOT – ONLY FOR CONNECTIONS */}
+        {isConnectionTab && (
+          <div className="flex gap-4 mt-3 text-sm">
+            <span>❤️ {health.heartRate} BPM</span>
+            <span>🌡️ {health.temperature} °C</span>
+          </div>
+        )}
+
+        {/* ACTION BUTTONS */}
+        <div className="flex max-sm:flex-col gap-2 mt-4">
+          <button
+            onClick={() => navigate(`/profile/${user._id}`)}
+            className="w-full p-2 text-sm rounded bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+          >
+            View Profile
+          </button>
+
+          <button
+            onClick={() => navigate(`/messages/${user._id}`)}
+            className="w-full p-2 text-sm rounded bg-gray-100 hover:bg-gray-200"
+          >
+            Message
+          </button>
+
+          {/* 🔥 EMERGENCY BUTTON – ONLY FOR CONNECTIONS & ONLY IF EMERGENCY */}
+          {isConnectionTab && health.status === "Emergency" && (
+            <button className="w-full p-2 text-sm rounded bg-red-600 text-white hover:bg-red-700">
+              🚨 Emergency
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+})}
+
         </div>
       </div>
     </div>
